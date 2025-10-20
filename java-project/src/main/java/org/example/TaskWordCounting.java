@@ -19,11 +19,20 @@ public class TaskWordCounting {
     {
         @Override
         public Iterator<String> call(String s) {
+            String cleaned_string = s.replaceAll("[^a-zA-Z0-9\\s]", "").toLowerCase();
+            String[] words_list = cleaned_string.split("\\s+");
+
+            List<String> words = new ArrayList<>();
+            for (String word : words_list) {
+                if (!word.isEmpty()) {
+                    words.add(word);
+                }
+            }
             //You need remove punctuations from the string, convert to lower case
             //and then split it by whitespace. Then put all strings that are some
             //sequence of alphanumeric characters to list and return the list iterator
 
-            return null; //Of course, you dont return null, but the iterator.
+            return words.iterator();
         }
 
     }
@@ -35,7 +44,7 @@ public class TaskWordCounting {
         SparkConf sparkConf = null;
 
         String datasetFileName = "dataset-wordcount.txt";
-        String datasetFilePath ="../datasets/" + datasetFileName;
+        String datasetFilePath ="datasets/" + datasetFileName;
         String applicationName = "WordCount";
         String hdfsDatasetPath = "hdfs://namenode:9000/datasets/";
         String sparkMaster = "spark://spark-master:7077";
@@ -43,7 +52,7 @@ public class TaskWordCounting {
         Date t0 = new Date(); //Mark the start timestamp
 
         if(local){
-            sparkConf = new SparkConf().setAppName(applicationName).setMaster("local[*]").set("spark.executor.instances", "1").set("spark.executor.instances", "10") .set("spark.executor.memory", "4g");
+            sparkConf = new SparkConf().setAppName(applicationName).setMaster("local[*]").set("spark.executor.memory", "4g");
         }else {
             datasetFilePath = hdfsDatasetPath + datasetFileName;
             sparkConf = new SparkConf().setAppName(applicationName).setMaster(sparkMaster);
@@ -58,6 +67,7 @@ public class TaskWordCounting {
 
         //Step-A: using the available textFile, create a flat map of words by calling the WordMapper.
         LOGGER.info("Flat mapping to create word list");
+        JavaRDD<String> wordList = textFile.flatMap(new WordMapper());
 
 
         //-------------------------------------------------------------------------------------------
@@ -67,6 +77,7 @@ public class TaskWordCounting {
 
         //Step B: Now invoke a mapping function that will create key value-pair for each word in the list
         LOGGER.info("Mapping function");
+        JavaPairRDD<String, Integer> wordPairs = wordList.mapToPair(word -> new Tuple2<>(word, 1));
 
 
         //-------------------------------------------------------------------------------------------
@@ -75,6 +86,7 @@ public class TaskWordCounting {
 
         //Step C: Invoke a Reduce function that will sum up the values (against each key)
         LOGGER.info("Reducing function");
+        JavaPairRDD<String, Integer> count = wordPairs.reduceByKey(Integer::sum);
 
 
         //-------------------------------------------------------------------------------------------
@@ -83,6 +95,8 @@ public class TaskWordCounting {
 
         //Step D: Finally, output the counts for each word
         LOGGER.info("Collecting to driver");
+        Map<String, Integer> counts_output = count.collectAsMap();
+        counts_output.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).forEach(entry -> System.out.println(entry.getKey() + " : " + entry.getValue()));
 
 
         //-------------------------------------------------------------------------------------------
