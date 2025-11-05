@@ -54,12 +54,20 @@ public class TaskRoomSensorTelemetry {
             //System.out.println("\n--- Hourly Average CO2 with Month (first 10 rows) ---");
             //hourlyAvgCo2.show(10);
             //-------------------------------------------------------------------------------------------
-
+            df = df.repartition(col("month")).cache();
+            Dataset<Row> hourlyAvgCo2 = df
+                    .groupBy(col("month"), col("hour"))
+                    .agg(avg(col("CO2")).alias("co2_avg"))
+                    .orderBy(col("month"), col("hour"));
             // Step B: Calculate the difference between consecutive hourly averages within each month
             // The window function is now partitioned by 'month'. This means 'lag' will
             // only look at previous rows within the same month partition.
 
             WindowSpec windowSpec = Window.partitionBy("month").orderBy("hour");
+
+            Dataset<Row> co2Differences = hourlyAvgCo2
+                    .withColumn("prev_avg", lag(col("co2_avg"), 1).over(windowSpec))
+                    .withColumn("delta", col("co2_avg").minus(col("prev_avg")));
 
             //Dataset<Row> co2Differences = hourlyAvgCo2...
 
@@ -78,6 +86,15 @@ public class TaskRoomSensorTelemetry {
 
             //System.out.println("\n--- Month-wise maximum CO2 increase and decrease results ---");
             //monthWiseResults.show();
+            Dataset<Row> monthWiseResults = co2Differences.groupBy(col("month"))
+                    .agg(
+                            max(when(col("delta").gt(lit(0)), col("delta"))).alias("max_increase_ppm_per_hour"),
+                            min(when(col("delta").lt(lit(0)), col("delta"))).alias("max_decrease_ppm_per_hour")
+                    )
+                    .orderBy(col("month"));
+
+            System.out.println("\n--- Month-wise CO2 delta (ppm/hour) based on hourly averages ---");
+            monthWiseResults.show(false);
 
 
             //-------------------------------------------------------------------------------------------
