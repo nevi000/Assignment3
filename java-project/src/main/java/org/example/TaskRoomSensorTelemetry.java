@@ -99,16 +99,16 @@ public class TaskRoomSensorTelemetry {
 
             //-------------------------------------------------------------------------------------------
             // Step D: find the correlation between month and CO2 (Hint: this is a one-liner :)
-            //double monthCorrelation = df...;
-            //System.out.printf("Global Correlation between month of year and CO2: %.4f%n%n", monthCorrelation);
+            double monthCorrelation = df.stat().corr("month", "CO2");
+            System.out.printf("Global Correlation between month of year and CO2: %.4f%n%n", monthCorrelation);
 
-            // Similarly, between month and CO2
-            //double hourCorrelation = df...;
-            //System.out.printf("Global Correlation between hour of day and CO2: %.4f%n%n", hourCorrelation);
+            // Similarly, between hour and CO2
+            double hourCorrelation = df.stat().corr("hour", "CO2");
+            System.out.printf("Global Correlation between hour of day and CO2: %.4f%n%n", hourCorrelation);
 
             // And, between weekday and CO2
-            //double weekdayCorrelation = df...;
-            //System.out.printf("Global Correlation between day of week and CO2: %.4f%n%n", weekdayCorrelation);
+            double weekdayCorrelation = df.stat().corr("weekday", "CO2");
+            System.out.printf("Global Correlation between day of week and CO2: %.4f%n%n", weekdayCorrelation);
             //-------------------------------------------------------------------------------------------
 
             //What you see? Which factor affects CO2 in room most?

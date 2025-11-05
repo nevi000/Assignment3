@@ -10,7 +10,8 @@ public class Main {
     public static void main(String[] args) {
         try {
             //TaskWordCounting.run(true);
-            TaskExampleShowering.run(true);
+            //TaskExampleShowering.run(true);
+            TaskRoomSensorTelemetry.run(true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
