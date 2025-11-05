@@ -44,10 +44,13 @@ public class TaskWordCounting {
         SparkConf sparkConf = null;
 
         String datasetFileName = "dataset-wordcount.txt";
-        String datasetFilePath ="datasets/" + datasetFileName;
+        //String datasetFilePath ="datasets/" + datasetFileName;
         String applicationName = "WordCount";
         String hdfsDatasetPath = "hdfs://namenode:9000/datasets/";
         String sparkMaster = "spark://spark-master:7077";
+
+        String localDatasetPath = "../datasets/" + datasetFileName;
+        String datasetFilePath = local ? localDatasetPath : (hdfsDatasetPath + datasetFileName);
 
         Date t0 = new Date(); //Mark the start timestamp
 
