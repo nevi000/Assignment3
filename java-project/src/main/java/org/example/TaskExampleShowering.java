@@ -22,8 +22,8 @@ public class TaskExampleShowering {
             LOGGER.info("Starting Spark Application.");
 
             String sparkApplicationName = "ShowerTelemetry";
-            String datasetFileName = "datasets/dataset-showering.csv";
-            String datasetFilePath ="../datasets/" + datasetFileName;
+            String datasetFileName = "dataset-showering.csv";
+            String datasetFilePath ="Assignment3/datasets/" + datasetFileName;
             String hdfsDatasetPath = "hdfs://namenode:9000/datasets/";
             String sparkMasterUrl = "spark://spark-master:7077";
 
