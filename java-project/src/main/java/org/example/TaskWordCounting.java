@@ -109,6 +109,9 @@ public class TaskWordCounting {
         //If you want you can save the counts to a hdfs file
         if(!local) {
             //counts.repartition(1).saveAsTextFile("hdfs://namenode:9000/output/counts.txt");
+            count.map(t -> t._1 + "," + t._2)
+                    .repartition(1)
+                    .saveAsTextFile("hdfs://namenode:9000/output/wordcount");
         }
         sparkContext.stop();
         sparkContext.close();
