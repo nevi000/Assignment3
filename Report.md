@@ -33,6 +33,11 @@ our Answer: Times of 1 core: 1553 ms, 1458 ms, 1489 ms, 1409 ms, 1390 ms, mean :
 
 ![Execution Time vs Number of Cores](images/execution_time_vs_cores.png)
 
+Interpretation: The execution time for the word counting task remained relatively stable regardless of the number of cores allocated (mean times around 1.4-1.5 seconds).
+                This suggests that the size of the dataset and the complexity of the computation were too small for Spark's parallelism to have a noticeable effect. 
+                The minor variations in execution time are probably caused by system overhead (no real performance gain with adding more cores). The overhead of managing 
+                multiple cores outweigh the benefits of parallel execution for this task specifiacally.
+
 4. Examine the execution history. Explain your observations regarding the planning of jobs, stages, and tasks. (0.4 pt)
 
 
