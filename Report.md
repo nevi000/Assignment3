@@ -45,6 +45,24 @@ Interpretation: The execution time for the word counting task remained relativel
 
 1. For each of the above computation, analyze the execution history and describe the key stages and tasks that were involved. In particular, identify where data shuffling occurred and explain why. (0.5pt)
 
+Our Answer: In total, the spark UI shows that 19 jobs were executed, with 19 completed stages and 52 skipped stages.
+
+            Shuffles and state behaviors are as follows:
+
+            a) hourly CO₂ averages (groupBy(month, hour))
+            This step triggers a shuffle (~11 KB read/write). This is because groupBy is a wide transformation
+            and Spark needs to redistribute data so that all records for the same (month, hour) are co-located for aggregation.
+
+            b) hourly deltas (lag() over Window.partitionBy("month"))
+            Here, no shuffle occurs, since the data was already partittioned by month earlier, so the window function operates locally within each partition (so called narrow transformation)
+
+            c) monthly maxima/minima (groupBy(month))
+            Here, another shuffle occurs (~11–14 KB read/write), as Spark must gather all data belonging to each month on the same executor to compute max/min deltas.
+
+            d) correlation computations (corr())
+            Each and every corr() operation launches an independent, short job but requires no shuffle, because it operates on the already aggregated dataset.
+
+            --> Conclusion: Data shuffling only happens during aggregations (groupBy), while the window and correlation steps are narrow operations.
 
 2. You had to manually partition the data. Why was this essential? Which feature of the dataset did you use to partition and why?(0.5pt)
 
