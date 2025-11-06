@@ -67,8 +67,17 @@ Our Answer: In total, the spark UI shows that 19 jobs were executed, with 19 com
 
 2. You had to manually partition the data. Why was this essential? Which feature of the dataset did you use to partition and why?(0.5pt)
 
+our Answer: Manual partitioning of the dataseet was essential to optimize performance during the window-based delta computation. Moreover, it helped to avoid unnecessary data shuffling.
+            Furthermore, a Window.partitionBy("month") operation in Spark remains a narrow transformation only if the data is already physically partitioned by the very same key.
+            Meaning that without manual partitioning, Spark would have to shuffle the entire dataset all over again to group records by months before computing deltas, leading to significant execution time increase.
+
+            That's why we used the "month" column to partition the dataset, because all subsequent computations (hourly averages, delta calculations, and monthly aggregations) depend on this time-related grouping.
+            This ensured that the data for each month was processed locally on executors, avoiding extra shuffle stages and resulting in faster, efficient execution (as confirmed by the Spark UI)
 
 3. Optional: Notice that in the already provided pre-processing (in the class DatasetHelper), the long form of timeseries data, i.e., with a column _field that contained values like temperature etc., has been converted to wide form, i.e. individual column for each measurement kind through and operation called pivoting. Analyze the execution log and describe why this happens to be an expensive transformation.
+
+            The execution log made it very clear why the pivot transformation is relatively expensive. Pivoting forces Spark to reshuffle the entire dataset because all measurements with the same key must end up on the same executor. 
+            This results in noticeably higher shuffle read/write sizes and additional stages compared to normal transformations. In our logs, the pivot stages clearly stood out: they required more time, more memory, and produced significantly more shuffle traffic.
 
 ### Task 3
 
