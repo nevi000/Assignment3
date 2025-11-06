@@ -60,7 +60,7 @@ Our Answer: In our implementation, the recalculation steps of the K-Means aswell
             which means that every executor can access them locally without repeated (and unnecessary) data transfer.
             During the E-step (Assign each training data point to its closest centroid), the mapToPair() assigns each data point to its closest centroid, in parallel. Hence each executor independently
             calculates distances for its corresponding local partition.
-            In the M-step, all points belonging to the same cluster across the cluster are being aggregates by the groupByKey() operation.
+            In the M-step, all points belonging to the same cluster across the cluster are being aggregates by the groupByKey() operation. as
             
 In the M-step, the groupByKey() operation aggregates all points belonging to the same cluster across the cluster, 
 and mapValues() computes the new centroid (the mean) for each group concurrently on different nodes.
