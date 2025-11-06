@@ -58,8 +58,12 @@ public class TaskKMeans implements Serializable {
      * @return The Euclidean distance.
      */
     public static double euclideanDistance(double[] v1, double[] v2) {
+        double totalSum = 0.0;
+        for (int i = 0; i < v1.length; i++) {
+            totalSum += (v1[i] - v2[i]) * (v1[i] - v2[i]);
+        }
 
-        return 0.0;
+        return Math.sqrt(totalSum);
     }
 
     /**
@@ -71,6 +75,15 @@ public class TaskKMeans implements Serializable {
     public static int findClosestCentroid(DataPoint point, List<DataPoint> centroids) {
         double minDistance = Double.MAX_VALUE;
         int closestCentroidId = -1;
+        int index = 0;
+        for (DataPoint centroid : centroids) {
+            double distance = euclideanDistance(point.getFeatures(), centroid.getFeatures());
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestCentroidId = index;
+            }
+            index++;
+        }
 
         return closestCentroidId;
     }
@@ -81,8 +94,28 @@ public class TaskKMeans implements Serializable {
      * @return A new DataPoint representing the mean of the cluster.
      */
     public static DataPoint calculateNewCentroid(Iterable<DataPoint> pointsInCluster) {
+        List<DataPoint> newCentroids = new ArrayList<>();
+        pointsInCluster.forEach(point -> newCentroids.add(point));
 
-        return new DataPoint(null /* newCentroidFeatures*/);
+        if (newCentroids.isEmpty()) {
+            return null;
+        }
+
+        int dimension = newCentroids.get(0).getFeatures().length;
+        double[] newCentroidFeatures = new double[dimension];
+
+        for (DataPoint point : newCentroids) {
+            double[] features = point.getFeatures();
+            for (int i = 0; i < dimension; i++) {
+                newCentroidFeatures[i] += features[i];
+            }
+        }
+
+        for (int i = 0; i < newCentroidFeatures.length; i++) {
+            newCentroidFeatures[i] /= newCentroids.size();
+        }
+
+        return new DataPoint(newCentroidFeatures);
     }
 
 
@@ -109,7 +142,7 @@ public class TaskKMeans implements Serializable {
         rawData = rawData.drop("timestamp").drop("unix_timestamp");
 
         //Filter out potentially noisy data
-        //rawData = rawData.filter();
+        rawData = rawData.filter("volume >= 50");
 
         System.out.println("Schema of loaded CSV:");
         rawData.printSchema();
@@ -162,25 +195,36 @@ public class TaskKMeans implements Serializable {
             System.out.println("\nIteration " + (iter + 1));
 
             // Broadcast current centroids to all worker nodes
-
+            Broadcast<List<DataPoint>> centroidsBroadcast = jsc.broadcast(currentCentroids);
 
             // E-step: Assign each training data point to its closest centroid
-
+            JavaPairRDD<Integer, DataPoint> clusteredPoints = trainingDataRDD.mapToPair(point -> {
+                int closestCentroidId = findClosestCentroid(point, centroidsBroadcast.value());
+                return new Tuple2<>(closestCentroidId, point);
+            });
 
             // M-step: Calculate new centroids based on the mean of assigned points
-
+            JavaPairRDD<Integer, DataPoint> newCentroids = clusteredPoints.groupByKey().mapValues(pointsInCluster -> calculateNewCentroid(pointsInCluster));
 
             // Collect new centroids to the driver and sort them by ID
-
+            List<DataPoint> updatedCentroids = newCentroids.sortByKey().values().collect();
 
             // Check for convergence
             boolean converged = true;
+            for (int i = 0; i < k; i++) {
+                if (!Arrays.equals(updatedCentroids.get(i).getFeatures(), currentCentroids.get(i).getFeatures())) {
+                    converged = false;
+                    break;
+                }
+
+            }
 
 
             // Update centroids for next iteration
+            currentCentroids = updatedCentroids;
 
             System.out.println("Current Centroids:");
-            //currentCentroids.forEach(c -> System.out.println(Arrays.toString(c.getFeatures())));
+            currentCentroids.forEach(c -> System.out.println(Arrays.toString(c.getFeatures())));
 
             if (converged) {
                 System.out.println("\nK-Means converged after " + (iter + 1) + " iterations.");

@@ -55,5 +55,18 @@ Interpretation: The execution time for the word counting task remained relativel
 
 1. Explain how the K-Means program you have implemented, specifically the centroid estimation and recalculation, is parallelized by Spark (0.5pt)
 
+Our Answer: In our implementation, the recalculation steps of the K-Means aswell as the centroid estimation are fully parallelized using the Sparks distributed RDD operations.
+            Basically, each data point in the training dataset is processed parallel across the worker nodes, where the current centroids are first broadcasted to all nodes using "JavaSparkContext.broadcast()",
+            which means that every executor can access them locally without repeated (and unnecessary) data transfer.
+            During the E-step (Assign each training data point to its closest centroid), the mapToPair() assigns each data point to its closest centroid, in parallel. Hence each executor independently
+            calculates distances for its corresponding local partition.
+            In the M-step, all points belonging to the same cluster across the cluster are being aggregates by the groupByKey() operation.
+            
+In the M-step, the groupByKey() operation aggregates all points belonging to the same cluster across the cluster, 
+and mapValues() computes the new centroid (the mean) for each group concurrently on different nodes.
+
+This design ensures that both assignment and centroid recalculation happen in parallel across all partitions, exploiting 
+Spark’s distributed computation model to accelerate iterative updates in K-Means.
+
 
 ## Declarations (if any)

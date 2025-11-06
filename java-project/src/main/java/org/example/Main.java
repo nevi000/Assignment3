@@ -9,7 +9,8 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            TaskRoomSensorTelemetry.run(true);
+            TaskKMeans.run(true);
+            //TaskRoomSensorTelemetry.run(true);
             //TaskWordCounting.run(true);
             //TaskExampleShowering.run(true);
         } catch (Exception e) {
