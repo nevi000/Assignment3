@@ -25,6 +25,13 @@ our Answer: We would implemnt the optimization simply by replacing the groupByKe
 
 3. In local execution mode (i.e. standalone mode), change the number of cores that is allocated by the master (.setMaster("local[<n>]") and measure the time it takes for the applicationto complete in each case. For each value of core allocation, run the experiment 5 times (to rule out large variances). Plot a graph showing the time taken for completion (with standard deviation) vs the number of cores allocated. Interpret and explain the results briefly in few sentences. (0.4 pt)
 
+our Answer: Times of 1 core: 1553 ms, 1458 ms, 1489 ms, 1409 ms, 1390 ms, mean : 1459.8 ms, standard deviation: 61.2 ms
+            Times of 2 cores: 1568 ms, 1422 ms, 1389 ms, 1410 ms, 1375 ms, mean : 1432.8 ms, standard deviation: 77.6 ms
+            Times of 4 cores: 1623 ms, 1495 ms, 1400 ms, 1388 ms, 1370 ms, mean : 1455.2 ms, standard deviation: 95.3 ms
+            Times of 7 cores: 1597 ms, 1429 ms, 1440 ms, 1395 ms, 1360 ms, mean : 1444.2 ms, standard deviation: 96.1 ms
+            Times of 10 cores: 1555 ms, 1390 ms, 1462 ms, 1405 ms, 1378 ms, mean : 1438.0 ms, standard deviation: 75.3 ms
+
+![Execution Time vs Number of Cores](images/execution_time_vs_cores.png)
 
 4. Examine the execution history. Explain your observations regarding the planning of jobs, stages, and tasks. (0.4 pt)
 

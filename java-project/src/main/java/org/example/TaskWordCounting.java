@@ -104,6 +104,7 @@ public class TaskWordCounting {
 
         //-------------------------------------------------------------------------------------------
         Date t4 = new Date();
+        System.out.println("completed in " + (t4.getTime()-t0.getTime()) + " ms");
         LOGGER.info("Application completed in {}ms", t4.getTime()-t0.getTime());
 
         //If you want you can save the counts to a hdfs file
