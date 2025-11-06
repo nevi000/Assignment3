@@ -64,6 +64,7 @@ Our Answer: In total, the spark UI shows that 19 jobs were executed, with 19 com
 
             --> Conclusion: Data shuffling only happens during aggregations (groupBy), while the window and correlation steps are narrow operations.
 
+
 2. You had to manually partition the data. Why was this essential? Which feature of the dataset did you use to partition and why?(0.5pt)
 
 
